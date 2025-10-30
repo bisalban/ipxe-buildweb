@@ -16,21 +16,19 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y git build-essential binutils perl mtools syslinux isolinux genisoimage liblzma-dev liblzma5 wget
+          sudo apt install -y git build-essential binutils perl mtools syslinux isolinux genisoimage liblzma-dev liblzma5
 
-      - name: Build iPXE binaries
+      - name: Build iPXE, gPXE and undionly.kpxe
         run: |
           git clone https://github.com/ipxe/ipxe.git
           cd ipxe/src
-          set +e
-          make bin/undionly.kpxe || true
-          make bin/gpxe.pxe || true
           make bin/ipxe.pxe || true
-          set -e
+          make bin/gpxe.pxe || true
+          make bin/undionly.kpxe || true
           mkdir -p ${{ github.workspace }}/output
-          cp bin/*.pxe ${{ github.workspace }}/output/ || true
+          cp bin/gpxe.pxe ${{ github.workspace }}/output/
 
-      - name: Upload PXE binaries
+      - name: Upload all PXE binaries
         uses: actions/upload-artifact@v4
         with:
           name: ipxe-binaries
