@@ -1,4 +1,4 @@
-name: Build iPXE PXE files
+name: Build full iPXE PXE set
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ jobs:
           sudo apt update
           sudo apt install -y git build-essential binutils perl mtools syslinux isolinux genisoimage liblzma-dev liblzma5
 
-      - name: Build iPXE binaries
+      - name: Build iPXE, gPXE and undionly.kpxe
         run: |
           git clone https://github.com/ipxe/ipxe.git
           cd ipxe/src
@@ -26,9 +26,9 @@ jobs:
           make bin/gpxe.pxe || true
           make bin/undionly.kpxe || true
           mkdir -p ${{ github.workspace }}/output
-          cp bin/*.pxe ${{ github.workspace }}/output/
+          cp bin/ipxe.pxe bin/gpxe.pxe bin/undionly.kpxe ${{ github.workspace }}/output/
 
-      - name: Upload build results
+      - name: Upload all PXE binaries
         uses: actions/upload-artifact@v4
         with:
           name: ipxe-binaries
