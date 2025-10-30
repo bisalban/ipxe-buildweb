@@ -5,28 +5,31 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build iPXE binaries
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y git build-essential binutils perl mtools syslinux isolinux genisoimage liblzma-dev liblzma5
+
+      - name: Build iPXE binaries
+        run: |
           git clone https://github.com/ipxe/ipxe.git
           cd ipxe/src
-          make bin/undionly.kpxe EMBED=../../embed.ipxe || true
-          make bin/ipxe.pxe EMBED=../../embed.ipxe || true
-          make bin/gpxe.pxe EMBED=../../embed.ipxe || true
-          mkdir -p /home/runner/work/ipxe-buildweb/output
-          cp bin/*.pxe /home/runner/work/ipxe-buildweb/output/
+          make bin/ipxe.pxe || true
+          make bin/gpxe.pxe || true
+          make bin/undionly.kpxe || true
+          mkdir -p ${{ github.workspace }}/output
+          cp bin/*.pxe ${{ github.workspace }}/output/
 
       - name: Upload build results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ipxe-binaries
-          path: /home/runner/work/ipxe-buildweb/output/
+          path: ${{ github.workspace }}/output/
